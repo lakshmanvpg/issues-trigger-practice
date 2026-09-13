@@ -1,4 +1,4 @@
-name: Terraform AWS1 Deployment
+name: Terraform AWS2 Deployment
 
 on:
   workflow_dispatch:
