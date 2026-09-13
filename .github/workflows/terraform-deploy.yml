@@ -4,11 +4,9 @@ on:
   workflow_dispatch:
 
 jobs:
+
   terraform-plan:
     runs-on: ubuntu-latest
-
-    environment:
-      name: terraform-production
 
     defaults:
       run:
