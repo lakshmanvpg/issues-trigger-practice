@@ -76,8 +76,8 @@ jobs:
           name: terraform-plan
           path: terraform
 
-      - name: Terraform Apply Approved Plan
-        run: terraform apply -auto-approve tfplan
+      - name: Terraform Apply Approved Plan1
+        run: terraform apply
 
       - name: Terraform Output
         run: terraform output
