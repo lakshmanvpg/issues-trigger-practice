@@ -1,0 +1,36 @@
+name: Create Snapshot
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  snapshot:
+    name: Create Git Snapshot
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create snapshot tag
+        shell: bash
+        run: |
+          SNAPSHOT_TAG="snapshot-${GITHUB_RUN_NUMBER}"
+
+          echo "Creating snapshot: $SNAPSHOT_TAG"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git tag "$SNAPSHOT_TAG"
+          git push origin "$SNAPSHOT_TAG"
+
+          echo "Snapshot created successfully."

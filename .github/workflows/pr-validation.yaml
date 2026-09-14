@@ -1,0 +1,87 @@
+name: Pull Request Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+permissions:
+  contents: read
+
+jobs:
+  pr-validation:
+    name: Terraform PR Validation
+    runs-on: ubuntu-latest
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Read infrastructure configuration
+        id: config
+        shell: bash
+        run: |
+          ENVIRONMENT=$(awk -F': ' '/^environment:/ {print $2}' infrastructure.yaml)
+          REGION=$(awk -F': ' '/^region:/ {print $2}' infrastructure.yaml)
+          OPERATION=$(awk -F': ' '/^operation:/ {print $2}' infrastructure.yaml)
+
+          echo "environment=$ENVIRONMENT" >> "$GITHUB_OUTPUT"
+          echo "region=$REGION" >> "$GITHUB_OUTPUT"
+          echo "operation=$OPERATION" >> "$GITHUB_OUTPUT"
+
+          echo "Environment : $ENVIRONMENT"
+          echo "Region      : $REGION"
+          echo "Operation   : $OPERATION"
+
+      - name: Validate infrastructure configuration
+        shell: bash
+        run: |
+          if [[ -z "${{ steps.config.outputs.environment }}" ]]; then
+            echo "Environment is missing"
+            exit 1
+          fi
+
+          if [[ -z "${{ steps.config.outputs.region }}" ]]; then
+            echo "Region is missing"
+            exit 1
+          fi
+
+          if [[ "${{ steps.config.outputs.operation }}" != "plan" &&
+                "${{ steps.config.outputs.operation }}" != "apply" &&
+                "${{ steps.config.outputs.operation }}" != "destroy" ]]; then
+            echo "Invalid Terraform operation:"
+            echo "${{ steps.config.outputs.operation }}"
+            echo "Allowed values: plan, apply, destroy"
+            exit 1
+          fi
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        working-directory: terraform
+        run: terraform init
+
+      - name: Terraform Format Check
+        working-directory: terraform
+        run: terraform fmt -check
+
+      - name: Terraform Validate
+        working-directory: terraform
+        run: terraform validate
+
+      - name: Terraform Plan
+        working-directory: terraform
+        run: |
+          terraform plan \
+            -var="environment=${{ steps.config.outputs.environment }}" \
+            -var="region=${{ steps.config.outputs.region }}"
