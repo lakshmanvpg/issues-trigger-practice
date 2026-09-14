@@ -127,4 +127,3 @@ jobs:
           echo "Deploying application..."
           sleep 5
           echo "Production deployment completed successfully"
-```
