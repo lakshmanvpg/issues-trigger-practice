@@ -1,0 +1,19 @@
+name: Expressions Practice
+
+on:
+  workflow_dispatch:
+
+jobs:
+
+  expressions:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Show Branch1
+        run: |
+          echo "Branch: ${{ github.ref_name }}"
+
+      - name: Show Repository1
+        run: |
+          echo "Repository: ${{ github.repository }}"
