@@ -1,9 +1,8 @@
+```yaml
 name: Application Deployment
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 
 jobs:
 
@@ -21,6 +20,9 @@ jobs:
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Version
+        run: terraform version
 
       - name: Terraform Init
         working-directory: terraform
@@ -61,6 +63,9 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
+      - name: Terraform Version
+        run: terraform version
+
       - name: Terraform Init
         working-directory: terraform
         run: terraform init
@@ -97,6 +102,12 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Version
+        run: terraform version
+
       - name: Terraform Init
         working-directory: terraform
         run: terraform init
@@ -117,3 +128,4 @@ jobs:
           echo "Deploying application..."
           sleep 5
           echo "Production deployment completed successfully"
+```
