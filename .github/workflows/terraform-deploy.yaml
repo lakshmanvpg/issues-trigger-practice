@@ -1,0 +1,77 @@
+name: Terraform Deployment
+
+on:
+  workflow_dispatch:
+
+jobs:
+  terraform:
+    name: Terraform Deployment
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: terraform
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Read infrastructure configuration
+        id: config
+        working-directory: .
+        shell: bash
+        run: |
+          ACTION=$(grep '^action:' infrastructure.yaml | awk '{print $2}')
+          ENVIRONMENT=$(grep '^environment:' infrastructure.yaml | awk '{print $2}')
+          REGION=$(grep '^region:' infrastructure.yaml | awk '{print $2}')
+
+          echo "action=$ACTION" >> "$GITHUB_OUTPUT"
+          echo "environment=$ENVIRONMENT" >> "$GITHUB_OUTPUT"
+          echo "region=$REGION" >> "$GITHUB_OUTPUT"
+
+          echo "Action: $ACTION"
+          echo "Environment: $ENVIRONMENT"
+          echo "Region: $REGION"
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Version
+        run: terraform version
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        if: steps.config.outputs.action == 'plan'
+        run: |
+          terraform plan \
+            -var="environment=${{ steps.config.outputs.environment }}" \
+            -var="region=${{ steps.config.outputs.region }}"
+
+      - name: Terraform Apply
+        if: steps.config.outputs.action == 'apply'
+        run: |
+          terraform apply \
+            -auto-approve \
+            -var="environment=${{ steps.config.outputs.environment }}" \
+            -var="region=${{ steps.config.outputs.region }}"
+
+      - name: Terraform Destroy
+        if: steps.config.outputs.action == 'destroy'
+        run: |
+          terraform destroy \
+            -auto-approve \
+            -var="environment=${{ steps.config.outputs.environment }}" \
+            -var="region=${{ steps.config.outputs.region }}"
