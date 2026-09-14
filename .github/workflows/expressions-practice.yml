@@ -10,7 +10,7 @@ jobs:
 
     steps:
 
-      - name: Show Branch
+      - name: Show Branch1
         run: |
           echo "Branch: ${{ github.ref_name }}"
 
