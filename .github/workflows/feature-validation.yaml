@@ -3,12 +3,11 @@ name: Feature Branch Validation
 on:
   push:
     branches:
-      - "feature/**"
+      - 'feature/**'
 
 jobs:
-
-  validation:
-    name: Validate Feature Branch
+  terraform-validation:
+    name: Terraform Validation
     runs-on: ubuntu-latest
 
     defaults:
@@ -16,8 +15,7 @@ jobs:
         working-directory: terraform
 
     steps:
-
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Setup Terraform
@@ -27,10 +25,13 @@ jobs:
         run: terraform version
 
       - name: Terraform Init
-        run: terraform init
+        run: terraform init -backend=false
 
       - name: Terraform Format Check
-        run: terraform fmt -check
+        run: terraform fmt -check -recursive
 
       - name: Terraform Validate
         run: terraform validate
+
+      - name: Terraform Plan
+        run: terraform plan
