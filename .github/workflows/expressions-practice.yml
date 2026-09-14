@@ -17,3 +17,7 @@ jobs:
       - name: Show Repository1
         run: |
           echo "Repository: ${{ github.repository }}"
+      - name: Contains Example
+        if: ${{ contains(github.ref_name, 'feature') }}
+        run: |
+          echo "Branch contains the word feature."    
